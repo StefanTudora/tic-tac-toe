@@ -7,6 +7,44 @@ const board = Array(3).fill().map(() => Array(3).fill(0));
 
 console.log(board);
 
+// Player factory function
+const createPlayer = function (boardSign) {
+    this.boardSign = boardSign;
+
+    const getSing = function () {
+        return this.boardSign;
+    }
+}
+
+const playerMap = { "CPU": createPlayer('O'), "Human": createPlayer('X') };
+
+class GameBoard {
+    constructor(game, board) {
+        this.game = game;
+        this.board = board;
+
+        this.getFreeSpots = function () {
+            const coordinateList = new Array();
+            board.forEach((row, rowIndex) => {
+                row.forEach((value, colIndex) => {
+                    if (value == '#') {
+                        coordinateList.push([rowIndex, colIndex]);
+                    }
+                });
+            });
+        }
+
+        this.setSpot = function (row, col, signature) {
+            board[row][col] = signature;
+        }
+
+        this.getSpot = function (row, col) {
+            return board[row][col];
+        }
+    }
+}
+
+
 
 class GameManager {
     constructor(board) {
@@ -14,36 +52,35 @@ class GameManager {
         this.state = undefined;
         this.counter = 0;
 
-        this.getState = function() {
+        this.getState = function () {
             if (this.state !== undefined) {
                 return this.state;
             }
         };
 
-        this.setState = function(state) {
+        this.setState = function (state) {
             this.state = state;
         };
 
-        this.play = function() {
+        this.play = function () {
             while (!(this.state instanceof FinalState)) {
                 console.log("Keep playing");
-                // console.log(this.state);
                 this.state.doAction();
             }
         };
 
-        this.incrementAndGet = function() {
-            ++ this.counter;
+        this.incrementAndGet = function () {
+            ++this.counter;
             return this.counter;
         };
     }
 }
 
 class HumanState {
-    constructor(game) {
+    constructor(game, playerInfo) {
         this.game = game;
-
-        this.doAction = function() {
+        this.playerInfo = playerInfo;
+        this.doAction = function () {
             console.log("We are doing an action on the Human state");
             if (game.incrementAndGet() > 10) {
                 game.setState(new FinalState())
@@ -55,9 +92,10 @@ class HumanState {
 }
 
 class CPUState {
-    constructor(game) {
+    constructor(game, playerInfo) {
         this.game = game;
-        this.doAction = function() {
+        this.playerInfo = playerInfo;
+        this.doAction = function () {
             console.log("We are doing an action on the CPU state");
             if (game.incrementAndGet() > 10) {
                 game.setState(new FinalState())
@@ -69,12 +107,13 @@ class CPUState {
 }
 
 class CheckState {
-    constructor (game, prevState) {
+    constructor(game, prevState) {
         this.game = game;
         this.prevState = prevState;
 
-        this.doAction = function() {
+        this.doAction = function () {
             console.log("Checking the if there is a winner");
+            // use prevState to know whos turn it is
             if (prevState instanceof HumanState) {
                 game.setState(new CPUState(game));
             } else {
@@ -85,11 +124,11 @@ class CheckState {
 }
 
 class FinalState {
-    // Intentionally left empty
+    // Reset the game here
 }
 
 
-var game = new GameManager(board);
+var game = new GameManager(new GameBoard(board));
 
 game.setState(new HumanState(game));
 
