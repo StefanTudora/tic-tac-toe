@@ -1,11 +1,8 @@
 
-// FSM state machine for deciding player action
 
 // Define pariticipants: min/max player; and action board
 
-const board = Array(3).fill().map(() => Array(3).fill(0));
-
-console.log(board);
+const board = Array(3).fill().map(() => Array(3).fill('#'));
 
 // Player factory function
 const createPlayer = function (boardSign) {
@@ -19,13 +16,13 @@ const createPlayer = function (boardSign) {
 const playerMap = { "CPU": createPlayer('O'), "Human": createPlayer('X') };
 
 class GameBoard {
-    constructor(game, board) {
-        this.game = game;
+    constructor(board) {
         this.board = board;
+        this.freeCells = 9;
 
         this.getFreeSpots = function () {
             const coordinateList = new Array();
-            board.forEach((row, rowIndex) => {
+            this.board.forEach((row, rowIndex) => {
                 row.forEach((value, colIndex) => {
                     if (value == '#') {
                         coordinateList.push([rowIndex, colIndex]);
@@ -34,17 +31,71 @@ class GameBoard {
             });
         }
 
-        this.setSpot = function (row, col, signature) {
-            board[row][col] = signature;
+        this.setSpot = function (row, col, mark) {
+            --this.freeCells;
+            this.board[row][col] = mark;
         }
 
         this.getSpot = function (row, col) {
-            return board[row][col];
+            return this.board[row][col];
+        }
+
+        this.clearBoard = function () {
+            this.board = Array(3).fill().map(() => Array(3).fill("#"));
+            this.freeCells = 9;
+        }
+
+        function allEqual(input) {
+            return input.split('').every(char => char === input[0]);
+        }
+
+        this.isThereAWinner = function () {
+            // Check rows
+            for (let i = 0; i < 3; ++i) {
+                const rowSum = this.board[i].reduce((accumulator, currentValue) => accumulator + currentValue, "");
+                if (allEqual(rowSum)) {
+                    return rowSum[0];
+                }
+            }
+            // Check columns
+            for (let i = 0; i < 3; ++i) {
+                var columnSum = "";
+                for (let j = 0; j < 3; ++j) {
+                    columnSum += this.board[j][i];
+                }
+                if (allEqual(columnSum)) {
+                    return columnSum[0];
+                }
+            }
+            // Check main diagonal
+            var diagSum = "";
+            for (let i = 0; i < 3; ++i) {
+                diagSum += this.board[i][i];
+            }
+            if (allEqual(diagSum)) {
+                return diagSum[0];
+            }
+            // Check secondary diagonal
+            diagSum = "";
+            for (let i = 0; i < 3; ++i) {
+                diagSum += this.board[i][i];
+            }
+            if (allEqual(diagSum)) {
+                return diagSum[0];
+            }
+            return null;
+        }
+
+        // Clear board, just in case
+        if (this.board !== undefined) {
+            this.clearBoard();
+        } else {
+            console.log("The board was not initialized.");
         }
     }
 }
 
-
+// FSM state machine for deciding player action
 
 class GameManager {
     constructor(board) {
@@ -69,6 +120,7 @@ class GameManager {
             }
         };
 
+        // Remove in final implementation
         this.incrementAndGet = function () {
             ++this.counter;
             return this.counter;
@@ -77,13 +129,13 @@ class GameManager {
 }
 
 class HumanState {
-    constructor(game, playerInfo) {
+    constructor(game) {
         this.game = game;
-        this.playerInfo = playerInfo;
+        this.playerInfo = createPlayer('X');;
         this.doAction = function () {
             console.log("We are doing an action on the Human state");
             if (game.incrementAndGet() > 10) {
-                game.setState(new FinalState())
+                game.setState(new FinalState(game))
             } else {
                 game.setState(new CheckState(game, this));
             }
@@ -92,13 +144,13 @@ class HumanState {
 }
 
 class CPUState {
-    constructor(game, playerInfo) {
+    constructor(game) {
         this.game = game;
-        this.playerInfo = playerInfo;
+        this.playerInfo = createPlayer('O');
         this.doAction = function () {
             console.log("We are doing an action on the CPU state");
             if (game.incrementAndGet() > 10) {
-                game.setState(new FinalState())
+                game.setState(new FinalState(game))
             } else {
                 game.setState(new CheckState(game, this));
             }
@@ -110,9 +162,13 @@ class CheckState {
     constructor(game, prevState) {
         this.game = game;
         this.prevState = prevState;
-
         this.doAction = function () {
-            console.log("Checking the if there is a winner");
+            const winningPlayer = game.board.isThereAWinner();
+            if (winningPlayer !== null) {
+                console.log("We have a winner");
+            } else if (board.getFreeSpots() == 0) {
+                game.setState(new FinalState(game));
+            }
             // use prevState to know whos turn it is
             if (prevState instanceof HumanState) {
                 game.setState(new CPUState(game));
@@ -125,6 +181,9 @@ class CheckState {
 
 class FinalState {
     // Reset the game here
+    constructor(game) {
+        game.board.clearBoard();
+    }
 }
 
 
@@ -134,3 +193,13 @@ game.setState(new HumanState(game));
 
 game.play();
 
+/*
+    Minimax implementation
+*/
+
+class MiniMax {
+    constructor() {
+        this.miniPlayer = createPlayer('O');
+        this.maxPlayer = createPlayer('X');
+    }
+}

@@ -1,0 +1,92 @@
+body {
+    display: grid;
+    grid-template-rows: min(100px, 10rem) 7fr;
+    font-family: 'Roboto', serif;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+}
+
+header {
+    display: flex;
+    font-size: 2rem;
+    font-weight: bolder;
+    background-color: #132743;
+    justify-content: center;
+    color: white;
+    gap: 50rem;
+}
+
+header > img {
+    width: 5rem;
+    filter: invert(1);
+}
+
+.main-content {
+    background-color: #ffcbcb;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex: auto;
+    height: 100%;
+}
+
+.main-content > .player-info {
+    background-color: #407088;
+    height: 80%;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    color: white;
+}
+
+.main-content > .player-info:first-child {
+    border-radius: 0px 50px 50px 0px;
+}
+
+.main-content > .player-info:last-child {
+    border-radius: 50px 0px 0px 50px;
+}
+
+.player-info p {
+    font-weight: bold;
+    font-size: 5rem;
+}
+
+.main-content > .board {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.board > div {
+    aspect-ratio: 1 / 1;
+    display: inline-flex;
+    width: 40px;
+    background-color: #ffb5b5;
+    flex-basis: calc(33% - 20px);
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+.board > div:hover {
+    scale: 1.1;
+    background-color: #d88484;
+    box-shadow: 0px 0px 10px rgb(51, 51, 51);
+}
+
+.score {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
