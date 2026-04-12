@@ -14,6 +14,9 @@ const createPlayer = function (boardSign) {
     }
 }
 
+// Separate in layers: UI -> FMS -> MiniMax
+
+
 const playerMap = { "CPU": createPlayer("O"), "Human": createPlayer("X") };
 
 class GameBoard {
@@ -194,10 +197,8 @@ class CheckState {
 
         this.doAction = function () {
             const winningPlayer = game.board.isThereAWinner();
-            if (winningPlayer !== null) {
-                console.log("We have a winner");
-            } else if (game.board.getFreeSpots() == 0) {
-                game.setState(new FinalState(game));
+            if (winningPlayer !== null || game.board.getFreeSpots() == 0) {
+                game.setState(new FinalState(game, winningPlayer));
             }
             // use prevState to know whos turn it is
             if (prevState instanceof HumanState) {
@@ -212,9 +213,14 @@ class CheckState {
 
 class FinalState {
     // Reset the game here
-    constructor(game) {
+    constructor(game, winner) {
         game.board.clearBoard();
+        document.querySelectorAll(".board > div").forEach(div => div.replaceChildren());
         game.setState(new HumanState(game));
+        if (winner != null) {
+            console.log("We hava a winner" + winningPlayer);
+        }
+
     }
 }
 
@@ -238,7 +244,7 @@ class MiniMax {
             // Check for a winner in this round
             const winner = board.isThereAWinner();
             if (winner !== null) {
-                return winner === "X" ? 1 : -1;
+                return winner === "X" ? 10 : -10;
             }
             // No more moves left, draw
             if (board.isFull()) {
@@ -274,7 +280,7 @@ class MiniMax {
             }
         }
 
-        // Method used by the CPU
+        // Method used by the CPU/Minimum Player
         this.getBestChoice = function () {
             var bestMove = [-1, -1];
             var minValue = 1e6;
