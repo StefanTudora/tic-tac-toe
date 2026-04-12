@@ -76,6 +76,12 @@ header > img {
     flex-basis: calc(33% - 20px);
     border-radius: 20px;
     transition: 0.3s;
+    justify-content: center;
+    align-items: center;
+}
+
+.board > div > img {
+    width: 3rem;
 }
 
 .board > div:hover {
@@ -89,4 +95,5 @@ header > img {
     flex-direction: row;
     gap: 20px;
 }
+
 
