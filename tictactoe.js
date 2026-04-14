@@ -50,7 +50,7 @@ class GameBoard {
         }
 
         this.isSpotFree = function (row, col) {
-            return board[row][col] === "#";
+            return this.board[row][col] === "#";
         }
 
         function allEqual(input) {
@@ -66,10 +66,10 @@ class GameBoard {
                 }
             }
             // Check columns
-            for (let i = 0; i < 3; ++i) {
+            for (let j = 0; j < 3; ++j) {
                 var columnSum = "";
-                for (let j = 0; j < 3; ++j) {
-                    columnSum += this.board[j][i];
+                for (let i = 0; i < 3; ++i) {
+                    columnSum += this.board[i][j];
                 }
                 if (allEqual(columnSum) && columnSum[0] !== '#') {
                     return columnSum[0];
@@ -125,6 +125,12 @@ class GameManager {
         this.doAction = function () {
             this.state.doAction();
         }
+
+        this.play = function () {
+            while (!(this.state instanceof HumanState)) {
+                game.doAction();
+            }
+        }
     }
 }
 
@@ -136,6 +142,7 @@ class HumanState {
 
         this.doAction = function () {
             // Await player action, blocking
+            return;
         }
 
         this.resumeAction = function (cell, idx) {
@@ -148,7 +155,7 @@ class HumanState {
             cell.appendChild(getXSvg());
             game.board.setSpot(row, col, "X");
             game.setState(new CheckState(game, this));
-            game.doAction();
+            game.play();
         }
     }
 }
@@ -170,7 +177,6 @@ class CPUState {
             game.board.setSpot(row, col, "O");
             document.querySelectorAll(".board > div")[row * 3 + col].appendChild(getOSvg());
             game.setState(new CheckState(game, this));
-            game.doAction();
         }
     }
 }
@@ -186,14 +192,14 @@ class CheckState {
             const winningPlayer = game.board.isThereAWinner();
             if (winningPlayer !== null || game.board.getFreeSpots() == 0) {
                 game.setState(new FinalState(game, winningPlayer));
-            }
-            // use prevState to know whos turn it is
-            if (prevState instanceof HumanState) {
-                game.setState(new CPUState(game));
             } else {
-                game.setState(new HumanState(game));
+                // use prevState to know whos turn it is
+                if (prevState instanceof HumanState) {
+                    game.setState(new CPUState(game));
+                } else {
+                    game.setState(new HumanState(game));
+                }
             }
-            game.doAction();
         }
     }
 }
@@ -202,26 +208,27 @@ class FinalState {
     // Reset the game here
     constructor(game, winningPlayer) {
 
-        const bookDialog = document.querySelector("dialog");
-        bookDialog.showModal();
-        if (winningPlayer != null) {
-            console.log("We hava a winner" + winningPlayer);
-            const winningMessage = document.querySelector("dialog > p");
-            winningMessage.innerText = "The winner is: " + (winningPlayer === "X" ? " Human" : " CPU");
-            if (winningPlayer === "X") {
-                const playerScore = document.querySelector(".player-info:first-child > div > p:last-child");
-                let score = Number(playerScore.innerText);
-                playerScore.innerText = (++ score).toString();
-            } else {
-                const playerScore = document.querySelector(".player-info:last-child > div > p:last-child");
-                let score = Number(playerScore.innerText);
-                playerScore.innerText = (++ score).toString();
+        this.doAction = function () {
+            const bookDialog = document.querySelector("dialog");
+            bookDialog.showModal();
+            if (winningPlayer != null) {
+                console.log("We hava a winner" + winningPlayer);
+                const winningMessage = document.querySelector("dialog > p");
+                winningMessage.innerText = "The winner is: " + (winningPlayer === "X" ? " Human" : " CPU");
+                if (winningPlayer === "X") {
+                    const playerScore = document.querySelector(".player-info:first-child > div > p:last-child");
+                    let score = Number(playerScore.innerText);
+                    playerScore.innerText = (++score).toString();
+                } else {
+                    const playerScore = document.querySelector(".player-info:last-child > div > p:last-child");
+                    let score = Number(playerScore.innerText);
+                    playerScore.innerText = (++score).toString();
+                }
             }
-        } 
-        game.board.clearBoard();
-        document.querySelectorAll(".board > div").forEach(div => div.replaceChildren());
-        game.setState(new HumanState(game));
-        game.doAction();
+            game.board.clearBoard();
+            document.querySelectorAll(".board > div").forEach(div => div.replaceChildren());
+            game.setState(new HumanState(game));
+        }
     }
 }
 
