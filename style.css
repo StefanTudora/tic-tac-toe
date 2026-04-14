@@ -96,4 +96,33 @@ header > img {
     gap: 20px;
 }
 
+dialog[open] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    gap: 1rem;
+    height: min(20%, 400px);
+    width: min(15%, 250px);
+    border-radius: 20px;
+    border-width: 0.1rem;
+}
 
+dialog::backdrop {
+    backdrop-filter: blur(4px);
+}
+
+dialog > button {
+    font-size: 2rem;
+    border-radius: 1rem;
+    background-color: white;
+    color: black;
+    transition: 0.3s;
+    border-width: 0px;
+}
+
+dialog > button:hover {
+    background-color: #407088;
+    color: white;
+}

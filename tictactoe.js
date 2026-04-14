@@ -1,10 +1,6 @@
 
-
-// Define pariticipants: min/max player; and action board
-
 const board = Array(3).fill().map(() => Array(3).fill('#'));
 
-// Player factory function
 const createPlayer = function (boardSign) {
     return {
         boardSign,
@@ -13,11 +9,6 @@ const createPlayer = function (boardSign) {
         }
     }
 }
-
-// Separate in layers: UI -> FMS -> MiniMax
-
-
-const playerMap = { "CPU": createPlayer("O"), "Human": createPlayer("X") };
 
 class GameBoard {
     constructor(board) {
@@ -131,12 +122,6 @@ class GameManager {
             this.state = state;
         };
 
-        // Remove in final implementation
-        this.incrementAndGet = function () {
-            ++this.counter;
-            return this.counter;
-        };
-
         this.doAction = function () {
             this.state.doAction();
         }
@@ -150,7 +135,7 @@ class HumanState {
         this.playerInfo = createPlayer('X');
 
         this.doAction = function () {
-            // Await player action
+            // Await player action, blocking
         }
 
         this.resumeAction = function (cell, idx) {
@@ -176,13 +161,14 @@ class CPUState {
         this.miniMaxAlg = new MiniMax(game.board);
 
         this.doAction = function () {
+
             // Calculate optimal move for the CPU
             const optiamlMove = this.miniMaxAlg.getBestChoice();
             const row = optiamlMove[0];
             const col = optiamlMove[1];
+
             game.board.setSpot(row, col, "O");
             document.querySelectorAll(".board > div")[row * 3 + col].appendChild(getOSvg());
-            console.log("We are doing an action on the CPU state");
             game.setState(new CheckState(game, this));
             game.doAction();
         }
@@ -196,6 +182,7 @@ class CheckState {
         this.prevState = prevState;
 
         this.doAction = function () {
+
             const winningPlayer = game.board.isThereAWinner();
             if (winningPlayer !== null || game.board.getFreeSpots() == 0) {
                 game.setState(new FinalState(game, winningPlayer));
@@ -213,27 +200,38 @@ class CheckState {
 
 class FinalState {
     // Reset the game here
-    constructor(game, winner) {
+    constructor(game, winningPlayer) {
+
+        const bookDialog = document.querySelector("dialog");
+        bookDialog.showModal();
+        if (winningPlayer != null) {
+            console.log("We hava a winner" + winningPlayer);
+            const winningMessage = document.querySelector("dialog > p");
+            winningMessage.innerText = "The winner is: " + (winningPlayer === "X" ? " Human" : " CPU");
+            if (winningPlayer === "X") {
+                const playerScore = document.querySelector(".player-info:first-child > div > p:last-child");
+                let score = Number(playerScore.innerText);
+                playerScore.innerText = (++ score).toString();
+            } else {
+                const playerScore = document.querySelector(".player-info:last-child > div > p:last-child");
+                let score = Number(playerScore.innerText);
+                playerScore.innerText = (++ score).toString();
+            }
+        } 
         game.board.clearBoard();
         document.querySelectorAll(".board > div").forEach(div => div.replaceChildren());
         game.setState(new HumanState(game));
-        if (winner != null) {
-            console.log("We hava a winner" + winningPlayer);
-        }
-
+        game.doAction();
     }
 }
-
 
 var game = new GameManager(new GameBoard(board));
 
 game.setState(new HumanState(game));
 
-// game.play();
-
 /*
-    Minimax implementation
-*/
+ *  Minimax implementation
+ */
 
 class MiniMax {
     constructor(board) {
@@ -308,11 +306,16 @@ function attachListener() {
         cell.addEventListener("click", () => {
             if (game.getState() instanceof HumanState) {
                 game.state.resumeAction(cell, idx);
-            } else {
-                // Log error;
-                console.log("Action triggered by someone not human");
             }
         });
+    });
+
+    const bookDialog = document.querySelector("dialog");
+
+    const closeDialogBtn = document.querySelector(".dialog-close");
+    closeDialogBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        bookDialog.close();
     });
 }
 
